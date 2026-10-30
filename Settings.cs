@@ -16,6 +16,12 @@ internal sealed class Settings
 
     public int HistorySize { get; set; } = DefaultHistorySize;
 
+    /// <summary>Look for a newer release on GitHub at startup and once a day.</summary>
+    public bool AutoCheckUpdates { get; set; } = true;
+
+    /// <summary>Last version the user was told about, so each release is announced only once.</summary>
+    public string? NotifiedVersion { get; set; }
+
     public static Settings Load()
     {
         try

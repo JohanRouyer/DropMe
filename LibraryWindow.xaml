@@ -94,6 +94,8 @@
                     <TextBlock x:Name="Subtitle" Foreground="#90FFFFFF" FontSize="12" Margin="0,2,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="UpdateButton" Style="{StaticResource PillButton}" Background="#3BA55D"
+                            Margin="0,0,8,0" Click="Update_Click" Visibility="Collapsed"/>
                     <Button x:Name="ClearButton" Style="{StaticResource PillButton}" Content="Clear history"
                             Margin="0,0,8,0" Click="Clear_Click"/>
                     <Button x:Name="SettingsButton" Style="{StaticResource PillButton}" Content="⚙" FontSize="13"

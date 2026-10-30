@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -19,11 +21,19 @@ public partial class App : Application
     private const string RunValueName = "DropMe";
     // Passed by the Windows startup entry, so the welcome balloon only shows on a manual launch.
     private const string StartupArgument = "--startup";
-    private const string RepositoryUrl = "https://github.com/JohanRouyer/DropMe";
+    // Passed by the installer when it restarts DropMe after an in-app update.
+    private const string UpdatedArgument = "--updated";
 
     private Mutex? _singleInstance;
     private MouseShakeHook? _hook;
     private Forms.NotifyIcon? _tray;
+    // What clicking the current notification does, if anything.
+    private Action? _notificationClick;
+    private DispatcherTimer? _updateTimer;
+    private bool _installingUpdate;
+
+    /// <summary>A newer release found on GitHub, or null.</summary>
+    internal UpdateInfo? AvailableUpdate { get; private set; }
     private readonly List<ShelfWindow> _shelves = new();
     private LibraryWindow? _library;
     private DateTime _libraryClosedAt;
@@ -62,8 +72,113 @@ public partial class App : Application
         _hook.ButtonReleased += () => Dispatcher.BeginInvoke(ScheduleEmptyShelfCleanup);
         _hook.Start();
 
-        CreateTrayIcon(showWelcome: !e.Args.Contains(StartupArgument));
+        CreateTrayIcon();
+        if (e.Args.Contains(UpdatedArgument))
+        {
+            UpdateChecker.DeleteDownloadedInstallers();
+            Notify($"DropMe updated to {UpdateChecker.CurrentVersion}", "Your shelves and settings were kept.");
+        }
+        else if (!e.Args.Contains(StartupArgument))
+            Notify("DropMe is running", "Drag a file and shake the mouse to bring up a shelf.");
+
+        if (Settings.AutoCheckUpdates)
+            StartUpdateTimer();
     }
+
+    private void Notify(string title, string text, Forms.ToolTipIcon icon = Forms.ToolTipIcon.Info, Action? onClick = null)
+    {
+        _notificationClick = onClick;
+        _tray?.ShowBalloonTip(5000, title, text, icon);
+    }
+
+    // ---- Updates ----
+
+    private void StartUpdateTimer()
+    {
+        // First check shortly after startup so it doesn't compete with launching, then once a day.
+        _updateTimer ??= new DispatcherTimer();
+        _updateTimer.Interval = TimeSpan.FromSeconds(15);
+        _updateTimer.Tick -= OnUpdateTimer;
+        _updateTimer.Tick += OnUpdateTimer;
+        _updateTimer.Start();
+    }
+
+    private async void OnUpdateTimer(object? sender, EventArgs e)
+    {
+        _updateTimer!.Interval = TimeSpan.FromHours(24);
+        await CheckForUpdatesAsync(manual: false);
+    }
+
+    private void SetAutoCheckUpdates(bool enabled)
+    {
+        Settings.AutoCheckUpdates = enabled;
+        Settings.Save();
+        if (enabled)
+            StartUpdateTimer();
+        else
+            _updateTimer?.Stop();
+    }
+
+    internal async Task CheckForUpdatesAsync(bool manual)
+    {
+        try
+        {
+            AvailableUpdate = await UpdateChecker.CheckAsync();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException
+                                       or KeyNotFoundException or InvalidOperationException)
+        {
+            // Being offline is normal; only say something when the user asked.
+            if (manual)
+                Notify("Couldn't check for updates", "Check your internet connection and try again.", Forms.ToolTipIcon.Warning);
+            return;
+        }
+
+        if (AvailableUpdate is not { } update)
+        {
+            if (manual)
+                Notify("DropMe is up to date", $"You have the latest version ({UpdateChecker.CurrentVersion}).");
+            return;
+        }
+
+        // Announce each release once, unless the user is asking right now.
+        string version = update.Version.ToString();
+        if (manual || Settings.NotifiedVersion != version)
+        {
+            Settings.NotifiedVersion = version;
+            Settings.Save();
+            Notify($"DropMe {version} is available", "Click here to update. Your shelves and settings are kept.",
+                onClick: InstallUpdate);
+        }
+    }
+
+    /// <summary>Downloads the new installer, runs it silently and exits; the installer restarts DropMe.</summary>
+    internal async void InstallUpdate()
+    {
+        if (AvailableUpdate is not { } update || _installingUpdate)
+            return;
+        _installingUpdate = true;
+        Notify("Updating DropMe", $"Downloading version {update.Version}…");
+        try
+        {
+            string installer = await UpdateChecker.DownloadAsync(update);
+            Process.Start(new ProcessStartInfo(installer, "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /update=1")
+            {
+                UseShellExecute = true,
+            });
+            // Exit cleanly before the installer stops the process, so open shelves go to history.
+            Shutdown();
+        }
+        catch (Exception ex)
+        {
+            LogError(ex);
+            _installingUpdate = false;
+            Notify("Update failed", "Click here to download it from GitHub instead.", Forms.ToolTipIcon.Warning,
+                () => OpenUrl(update.PageUrl));
+        }
+    }
+
+    private static void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
     private static void LogError(Exception ex)
     {
@@ -142,7 +257,7 @@ public partial class App : Application
         History.Remove(entry);
         if (!entry.Items.Any(p => File.Exists(p) || Directory.Exists(p)))
         {
-            _tray?.ShowBalloonTip(3000, "DropMe", "These files no longer exist.", Forms.ToolTipIcon.Warning);
+            Notify("DropMe", "These files no longer exist.", Forms.ToolTipIcon.Warning);
             return;
         }
 
@@ -168,7 +283,7 @@ public partial class App : Application
         timer.Start();
     }
 
-    private void CreateTrayIcon(bool showWelcome)
+    private void CreateTrayIcon()
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Opening += (_, _) => BuildTrayMenu(menu);
@@ -185,9 +300,8 @@ public partial class App : Application
             if (args.Button == Forms.MouseButtons.Left)
                 ToggleLibrary();
         };
-        if (showWelcome)
-            _tray.ShowBalloonTip(3000, "DropMe is running",
-                "Drag a file and shake the mouse to bring up a shelf.", Forms.ToolTipIcon.Info);
+        _tray.BalloonTipClicked += (_, _) => _notificationClick?.Invoke();
+        _tray.BalloonTipClosed += (_, _) => _notificationClick = null;
     }
 
     private void ToggleLibrary()
@@ -214,6 +328,13 @@ public partial class App : Application
     private void BuildTrayMenu(Forms.ContextMenuStrip menu)
     {
         menu.Items.Clear();
+        if (AvailableUpdate is { } update)
+        {
+            var install = new Forms.ToolStripMenuItem($"Update to {update.Version}", null, (_, _) => InstallUpdate());
+            install.Font = new Drawing.Font(install.Font, Drawing.FontStyle.Bold);
+            menu.Items.Add(install);
+            menu.Items.Add(new Forms.ToolStripSeparator());
+        }
         menu.Items.Add("Open DropMe", null, (_, _) => ToggleLibrary());
         menu.Items.Add("New shelf", null, (_, _) => OpenNewShelf());
         if (_shelves.Count > 0)
@@ -237,25 +358,29 @@ public partial class App : Application
         }
         menu.Items.Add(historySize);
 
-        var startup =new Forms.ToolStripMenuItem("Start with Windows") { Checked = IsStartupEnabled() };
+        var startup = new Forms.ToolStripMenuItem("Start with Windows") { Checked = IsStartupEnabled() };
         startup.Click += (_, _) => SetStartupEnabled(!startup.Checked);
         menu.Items.Add(startup);
+
+        var autoUpdate = new Forms.ToolStripMenuItem("Check for updates automatically") { Checked = Settings.AutoCheckUpdates };
+        autoUpdate.Click += (_, _) => SetAutoCheckUpdates(!Settings.AutoCheckUpdates);
+        menu.Items.Add(autoUpdate);
         menu.Items.Add(new Forms.ToolStripSeparator());
+        menu.Items.Add("Check for updates", null, async (_, _) => await CheckForUpdatesAsync(manual: true));
         menu.Items.Add("About DropMe", null, (_, _) => ShowAbout());
         menu.Items.Add("Quit", null, (_, _) => Shutdown());
     }
 
     private static void ShowAbout()
     {
-        string? version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
         var answer = MessageBox.Show(
-            $"DropMe {version}\nCopyright (c) 2026 JohanRouyer\n\n"
+            $"DropMe {UpdateChecker.CurrentVersion}\nCopyright (c) 2026 JohanRouyer\n\n"
             + "Licensed under the PolyForm Noncommercial License 1.0.0: free for noncommercial use, "
             + "and this copyright notice must be kept when sharing it.\n\n"
             + "Open the project page on GitHub?",
             "About DropMe", MessageBoxButton.YesNo, MessageBoxImage.Information);
         if (answer == MessageBoxResult.Yes)
-            Process.Start(new ProcessStartInfo(RepositoryUrl) { UseShellExecute = true });
+            OpenUrl(UpdateChecker.RepositoryUrl);
     }
 
     private static Drawing.Icon LoadTrayIcon()

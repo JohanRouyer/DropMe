@@ -74,6 +74,8 @@ public partial class LibraryWindow : Window
             _ => $"{open.Count} open · {recent} recent · {kept}",
         };
         ClearButton.Visibility = recent > 0 ? Visibility.Visible : Visibility.Collapsed;
+        UpdateButton.Visibility = _app.AvailableUpdate != null ? Visibility.Visible : Visibility.Collapsed;
+        UpdateButton.Content = _app.AvailableUpdate is { } update ? $"⬆  Update to {update.Version}" : null;
         EmptyState.Visibility = Cards.Children.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -179,6 +181,14 @@ public partial class LibraryWindow : Window
             return;
         Close();
         _app.OpenNewShelf();
+    }
+
+    private void Update_Click(object sender, RoutedEventArgs e)
+    {
+        if (_closing)
+            return;
+        Close();
+        _app.InstallUpdate();
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e)

@@ -65,6 +65,8 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; In-app updates run this installer silently with /update=1: start DropMe again afterwards.
+Filename: "{app}\{#AppExe}"; Parameters: "--updated"; Flags: nowait; Check: IsInAppUpdate
 
 [UninstallRun]
 Filename: "{sys}\taskkill.exe"; Parameters: "/f /im {#AppExe}"; Flags: runhidden; RunOnceId: "StopDropMe"
@@ -80,6 +82,11 @@ var
   ResultCode: Integer;
 begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im {#AppExe}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+function IsInAppUpdate(): Boolean;
+begin
+  Result := ExpandConstant('{param:update|0}') = '1';
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

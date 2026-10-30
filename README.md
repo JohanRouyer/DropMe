@@ -10,8 +10,13 @@ while you switch to another folder or app.
 ## Download
 
 Get **`DropMe-Setup-<version>.exe`** from the [latest release](https://github.com/JohanRouyer/DropMe/releases/latest)
-and run it. No admin rights or .NET install needed (Windows 10/11, 64-bit). Updating is just
-running the newer installer; your shelves and settings are kept.
+and run it. No admin rights or .NET install needed (Windows 10/11, 64-bit).
+
+DropMe checks for new releases at startup and once a day. When one is out, a notification and an
+**Update** button appear; one click downloads the installer, verifies its SHA-256 checksum against
+the one GitHub publishes, installs it and restarts DropMe. Your shelves and settings are kept.
+The check is a single anonymous request to the GitHub API and can be turned off from the tray menu
+("Check for updates automatically").
 
 ## How it works
 

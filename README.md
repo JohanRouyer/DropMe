@@ -1,42 +1,70 @@
+<div align="center">
+
 # DropMe
 
-A floating shelf for Windows: drag a file, shake the mouse, and a small window pops up to hold it
-while you switch to another folder or app.
+**A drop zone that appears when you need it.**
+Drag a file, give the mouse a quick shake, and a small shelf pops up to hold it
+while you go find where it belongs.
 
 [![Latest release](https://img.shields.io/github/v/release/JohanRouyer/DropMe)](https://github.com/JohanRouyer/DropMe/releases/latest)
-[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE.md)
-![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-lightgrey)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE.md)
+![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
 
-## Download
+[**Download for Windows**](https://github.com/JohanRouyer/DropMe/releases/latest)
 
-Get **`DropMe-Setup-<version>.exe`** from the [latest release](https://github.com/JohanRouyer/DropMe/releases/latest)
-and run it. No admin rights or .NET install needed (Windows 10/11, 64-bit).
+</div>
 
-DropMe checks for new releases at startup and once a day. When one is out, a notification and an
-**Update** button appear; one click downloads the installer, verifies its SHA-256 checksum against
-the one GitHub publishes, installs it and restarts DropMe. Your shelves and settings are kept.
-The check is a single anonymous request to the GitHub API and can be turned off from the tray menu
-("Check for updates automatically").
+---
 
-## How it works
+## Why DropMe?
 
-- **Shake the mouse** while dragging (left button held) to open a shelf next to the cursor.
-- **Drop** files, folders, images from websites, text or links onto it.
-- **Drag the stack** to a folder or app to move everything; **click** it to expand the list and
-  drag files out one by one, open them, or remove them.
-- **Click the tray icon** to open the DropMe window with your open shelves and the most recently
-  closed ones, which reopen with a click. How many closed shelves are kept (3 to 50, 5 by default)
-  is set with ⚙ or from the tray icon menu.
+Moving files on Windows often means juggling two Explorer windows, or dragging something halfway
+across the screen only to realize the destination isn't open yet. DropMe gives you a place to put
+things down for a moment:
 
-Shelves only keep paths to your files: nothing is copied or deleted until you drag it somewhere.
-Images, text and links dropped from other apps are saved to `%TEMP%\DropMe`; history and settings
-live in `%APPDATA%\DropMe`.
+1. **Start dragging** a file, a folder, an image from a web page, some text or a link.
+2. **Shake the mouse** left and right. A shelf appears right next to the cursor.
+3. **Drop it on the shelf**, then take your time: open the right folder, switch apps, collect more files.
+4. **Drag the shelf** to where everything should go. Done.
 
-### Known limitation
+No window to keep open, no hotkey to remember. It stays out of the way in the notification area
+until you shake.
 
-The shake is detected whenever the left mouse button is held, so it can also trigger while
-selecting text or moving a window. Windows offers no reliable way to know that a file drag is in
-progress.
+## What you get
+
+- **Shelves that follow your workflow.** Collect files from several places onto one shelf, then
+  move them all in a single drag, or click the stack to see each file and take them out one by one.
+- **Works with more than files.** Images dragged from a browser are saved as real image files,
+  not links. Text and URLs become `.txt` and `.url` files you can drop anywhere.
+- **A short memory.** Closed shelves go into a history (3 to 50, your choice), so you can reopen
+  the files you set aside earlier with one click from the tray icon.
+- **Stays out of the way.** The shelf never steals focus from the app you're dragging from, and
+  DropMe can start with Windows.
+- **Updates itself.** New versions are announced once and install in one click, after checking the
+  download against the checksum GitHub publishes.
+- **Nothing is moved behind your back.** A shelf only holds references to your files; nothing is
+  copied or deleted until you drag it somewhere yourself.
+
+## Get started
+
+1. Download **`DropMe-Setup-<version>.exe`** from the [latest release](https://github.com/JohanRouyer/DropMe/releases/latest).
+2. Run it. No admin rights and no .NET install needed (Windows 10/11, 64-bit).
+3. Drag any file and shake the mouse.
+
+The tray icon is where everything else lives: left-click it to see your open and recent shelves,
+right-click it for settings.
+
+## Good to know
+
+- **Privacy.** DropMe works entirely on your PC. The only network requests are a daily, anonymous
+  check of this repository's latest release (which you can turn off from the tray menu) and
+  downloading images you drop from websites.
+- **Where things are kept.** Images, text and links dropped from other apps are saved to
+  `%TEMP%\DropMe`. History and settings live in `%APPDATA%\DropMe`. Uninstalling removes both.
+- **Known limitation.** The shake is detected whenever the left mouse button is held, so it can
+  occasionally trigger while selecting text or moving a window. Windows offers no reliable way to
+  tell that a file drag is in progress. Closing the shelf is one click, and an empty shelf closes
+  by itself when you let go.
 
 ## Building from source
 
@@ -52,17 +80,16 @@ To build the installer you also need Inno Setup 6 (`winget install JRSoftware.In
 powershell -ExecutionPolicy Bypass -File installer\build-installer.ps1
 ```
 
-This produces `dist\DropMe-Setup-<version>.exe` (self-contained, no admin rights needed). The
-version comes from `<Version>` in `DropMe.csproj`.
+This produces `dist\DropMe-Setup-<version>.exe`, with the version taken from `<Version>` in
+`DropMe.csproj`. Releases are published as `v<version>` tags with that installer attached, which
+is what the in-app updater looks for.
 
 ## License
 
-DropMe is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
+DropMe is free for personal and other **noncommercial** use under the
+[PolyForm Noncommercial License 1.0.0](LICENSE.md). You're welcome to use it, modify it and share
+it, as long as you credit the author by keeping the license and this notice:
 
-- You may use, modify and share it for any **noncommercial** purpose.
-- When you share it, or anything based on it, you must **credit the author** by including the
-  license and this notice:
+> Required Notice: Copyright (c) 2026 JohanRouyer (https://github.com/JohanRouyer/DropMe)
 
-  > Required Notice: Copyright (c) 2026 JohanRouyer (https://github.com/JohanRouyer/DropMe)
-
-- **Commercial use is not allowed.** For a commercial license, open an issue to get in touch.
+Commercial use isn't allowed. If you'd like to use DropMe commercially, open an issue to get in touch.

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace DropMe;
 
@@ -12,6 +13,8 @@ namespace DropMe;
 internal static class ShelfStack
 {
     public static readonly Brush Accent = Frozen(Color.FromRgb(0x58, 0x65, 0xF2));
+    public static readonly Brush TextPrimary = Frozen(Color.FromArgb(0xEE, 0xFF, 0xFF, 0xFF));
+    public static readonly Brush TextSecondary = Frozen(Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF));
     private static readonly Brush CardFill = Frozen(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
     private static readonly Brush CardStroke = Frozen(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF));
 
@@ -52,27 +55,40 @@ internal static class ShelfStack
         }
     }
 
+    /// <summary>
+    /// The file's Explorer thumbnail. Cached ones appear at once; others are built at background
+    /// priority so a long list shows immediately and fills in without freezing the window.
+    /// </summary>
     public static FrameworkElement Thumbnail(string path, double size)
     {
         int pixels = (int)(size * 2);
         var key = (path.ToLowerInvariant(), pixels);
-        if (!Cache.TryGetValue(key, out var thumb))
-        {
-            if (Cache.Count > 300)
-                Cache.Clear();
-            thumb = Cache[key] = ShellThumbnail.Get(path, pixels);
-        }
+        if (Cache.TryGetValue(key, out var cached))
+            return Display(cached, size);
 
-        return thumb != null
-            ? new Image { Source = thumb, Stretch = Stretch.Uniform }
-            : new TextBlock
+        var host = new Border();
+        host.Dispatcher.BeginInvoke(() =>
+        {
+            if (!Cache.TryGetValue(key, out var thumb))
             {
-                Text = "📄",
-                FontSize = size * 0.4,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
+                if (Cache.Count >= 120)
+                    Cache.Clear();
+                thumb = Cache[key] = ShellThumbnail.Get(path, pixels);
+            }
+            host.Child = Display(thumb, size);
+        }, DispatcherPriority.Background);
+        return host;
     }
+
+    private static FrameworkElement Display(ImageSource? thumb, double size) => thumb != null
+        ? new Image { Source = thumb, Stretch = Stretch.Uniform }
+        : new TextBlock
+        {
+            Text = "📄",
+            FontSize = size * 0.4,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
 
     public static string DisplayName(string path) =>
         Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } name ? name : path;
@@ -96,7 +112,7 @@ internal static class ShelfStack
         Child = Thumbnail(path, size),
     };
 
-    private static Brush Frozen(Color color)
+    public static Brush Frozen(Color color)
     {
         var brush = new SolidColorBrush(color);
         brush.Freeze();

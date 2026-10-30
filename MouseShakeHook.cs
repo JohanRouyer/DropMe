@@ -30,6 +30,9 @@ internal sealed class MouseShakeHook : IDisposable
         public IntPtr dwExtraInfo;
     }
 
+    private static readonly int PointXOffset = (int)Marshal.OffsetOf<MSLLHOOKSTRUCT>(nameof(MSLLHOOKSTRUCT.pt));
+    private static readonly int TimeOffset = (int)Marshal.OffsetOf<MSLLHOOKSTRUCT>(nameof(MSLLHOOKSTRUCT.time));
+
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
 
@@ -138,21 +141,21 @@ internal sealed class MouseShakeHook : IDisposable
 
     private IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam)
     {
+        // Runs for every mouse event on the system: read only the fields needed, and only when needed.
         if (nCode >= 0)
         {
-            var info = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
             switch ((int)wParam)
             {
                 case WM_LBUTTONDOWN:
                     _buttonDown = true;
-                    Reset(info.pt.X);
+                    Reset(Marshal.ReadInt32(lParam, PointXOffset));
                     break;
                 case WM_LBUTTONUP:
                     _buttonDown = false;
                     ButtonReleased?.Invoke();
                     break;
                 case WM_MOUSEMOVE when _buttonDown:
-                    Track(info.pt.X, info.time);
+                    Track(Marshal.ReadInt32(lParam, PointXOffset), unchecked((uint)Marshal.ReadInt32(lParam, TimeOffset)));
                     break;
             }
         }

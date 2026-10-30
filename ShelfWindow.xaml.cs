@@ -51,8 +51,9 @@ public partial class ShelfWindow : Window
     private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
     private static readonly string TempFolder = Path.Combine(Path.GetTempPath(), "DropMe");
-    private static readonly Brush IdleOutline = new SolidColorBrush(Color.FromArgb(0x50, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush IdleBorder = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush IdleOutline = ShelfStack.Frozen(Color.FromArgb(0x50, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush IdleBorder = ShelfStack.Frozen(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush RowHover = ShelfStack.Frozen(Color.FromArgb(0x1C, 0xFF, 0xFF, 0xFF));
 
     /// <summary>True while one of the shelves is the source of a drag, so a shake doesn't spawn a new shelf.</summary>
     public static bool IsDraggingOut { get; private set; }
@@ -65,7 +66,6 @@ public partial class ShelfWindow : Window
     public IReadOnlyList<string> Items => _items;
 
     private readonly List<string> _items = new();
-    private static readonly Brush RowHover = new SolidColorBrush(Color.FromArgb(0x1C, 0xFF, 0xFF, 0xFF));
 
     private bool _draggingFromHere;
     private bool _expanded;
@@ -481,14 +481,14 @@ public partial class ShelfWindow : Window
         text.Children.Add(new TextBlock
         {
             Text = ShelfStack.DisplayName(path),
-            Foreground = new SolidColorBrush(Color.FromArgb(0xEE, 0xFF, 0xFF, 0xFF)),
+            Foreground = ShelfStack.TextPrimary,
             FontSize = 12.5,
             TextTrimming = TextTrimming.CharacterEllipsis,
         });
         text.Children.Add(new TextBlock
         {
             Text = DescribeFile(path),
-            Foreground = new SolidColorBrush(Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF)),
+            Foreground = ShelfStack.TextSecondary,
             FontSize = 11,
         });
 
@@ -556,7 +556,7 @@ public partial class ShelfWindow : Window
             };
             return ext.Length > 0 ? $"{ext} · {formatted}" : formatted;
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             return "Introuvable";
         }

@@ -23,7 +23,8 @@ internal static class ImageDownloader
 
     private static HttpClient CreateClient()
     {
-        var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+        // Images only: anything over 100 MB is refused rather than loaded into memory.
+        var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20), MaxResponseContentBufferSize = 100 * 1024 * 1024 };
         // Some sites refuse requests that don't look like they come from a browser.
         client.DefaultRequestHeaders.UserAgent.ParseAdd(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36");

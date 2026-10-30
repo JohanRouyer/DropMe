@@ -11,9 +11,9 @@ namespace DropMe;
 /// <summary>The DropMe window opened from the tray icon: open shelves and the recent ones, as cards.</summary>
 public partial class LibraryWindow : Window
 {
-    private static readonly Brush CardIdle = new SolidColorBrush(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush CardHover = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush OpenBadge = new SolidColorBrush(Color.FromRgb(0x3B, 0xA5, 0x5D));
+    private static readonly Brush CardIdle = ShelfStack.Frozen(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush CardHover = ShelfStack.Frozen(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush OpenBadge = ShelfStack.Frozen(Color.FromRgb(0x3B, 0xA5, 0x5D));
 
     private readonly App _app;
     private bool _closing;
@@ -113,7 +113,7 @@ public partial class LibraryWindow : Window
         captionRow.Children.Add(new TextBlock
         {
             Text = caption,
-            Foreground = new SolidColorBrush(Color.FromArgb(0x90, 0xFF, 0xFF, 0xFF)),
+            Foreground = ShelfStack.TextSecondary,
             FontSize = 11,
         });
 

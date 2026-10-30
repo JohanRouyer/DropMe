@@ -61,10 +61,11 @@ internal static class ShellThumbnail
     public static ImageSource? Get(string path, int size)
     {
         IntPtr hbmp = IntPtr.Zero;
+        IShellItemImageFactory? factory = null;
         try
         {
             var iid = typeof(IShellItemImageFactory).GUID;
-            SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out var factory);
+            SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out factory);
             if (factory.GetImage(new SIZE { cx = size, cy = size }, 0, out hbmp) != 0 || hbmp == IntPtr.Zero)
                 return null;
 
@@ -95,6 +96,8 @@ internal static class ShellThumbnail
         {
             if (hbmp != IntPtr.Zero)
                 DeleteObject(hbmp);
+            if (factory != null)
+                Marshal.ReleaseComObject(factory);
         }
     }
 

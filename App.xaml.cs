@@ -15,6 +15,8 @@ public partial class App : Application
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string RunValueName = "DropMe";
+    // Passed by the Windows startup entry, so the welcome balloon only shows on a manual launch.
+    private const string StartupArgument = "--startup";
 
     private Mutex? _singleInstance;
     private MouseShakeHook? _hook;
@@ -39,6 +41,13 @@ public partial class App : Application
             return;
         }
 
+        // A tray app has no window to show an error in: log it and keep running instead of vanishing.
+        DispatcherUnhandledException += (_, args) =>
+        {
+            LogError(args.Exception);
+            args.Handled = true;
+        };
+
         History = ShelfHistory.Load();
         PrepareSpareShelf();
 
@@ -48,7 +57,21 @@ public partial class App : Application
         _hook.ButtonReleased += () => Dispatcher.BeginInvoke(ScheduleEmptyShelfCleanup);
         _hook.Start();
 
-        CreateTrayIcon();
+        CreateTrayIcon(showWelcome: !e.Args.Contains(StartupArgument));
+    }
+
+    private static void LogError(Exception ex)
+    {
+        try
+        {
+            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DropMe");
+            Directory.CreateDirectory(folder);
+            File.AppendAllText(Path.Combine(folder, "errors.log"), $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch (Exception)
+        {
+            // Nowhere left to report it.
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -65,6 +88,9 @@ public partial class App : Application
 
     private void PrepareSpareShelf()
     {
+        // Two shelves taken in a row queue two calls; the second must not orphan the first spare.
+        if (_spare != null)
+            return;
         _spare = new ShelfWindow();
         _spare.Prewarm();
     }
@@ -117,6 +143,9 @@ public partial class App : Application
     // shaken-open shelf, it disappears. The delay lets the Drop event land first.
     private void ScheduleEmptyShelfCleanup()
     {
+        // This runs on every click anywhere in Windows: bail out unless a shelf is waiting for a drop.
+        if (!_shelves.Any(s => s.IsEmpty && s.AutoCloseIfEmpty))
+            return;
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
         timer.Tick += (_, _) =>
         {
@@ -127,7 +156,7 @@ public partial class App : Application
         timer.Start();
     }
 
-    private void CreateTrayIcon()
+    private void CreateTrayIcon(bool showWelcome)
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Opening += (_, _) => BuildTrayMenu(menu);
@@ -144,8 +173,9 @@ public partial class App : Application
             if (args.Button == Forms.MouseButtons.Left)
                 ToggleLibrary();
         };
-        _tray.ShowBalloonTip(3000, "DropMe est actif",
-            "Glissez un fichier puis secouez la souris pour faire apparaître l'étagère.", Forms.ToolTipIcon.Info);
+        if (showWelcome)
+            _tray.ShowBalloonTip(3000, "DropMe est actif",
+                "Glissez un fichier puis secouez la souris pour faire apparaître l'étagère.", Forms.ToolTipIcon.Info);
     }
 
     private void ToggleLibrary()
@@ -207,7 +237,7 @@ public partial class App : Application
     {
         using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath);
         if (enabled && Environment.ProcessPath is string exe)
-            key.SetValue(RunValueName, $"\"{exe}\"");
+            key.SetValue(RunValueName, $"\"{exe}\" {StartupArgument}");
         else
             key.DeleteValue(RunValueName, throwOnMissingValue: false);
     }

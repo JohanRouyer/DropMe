@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>DropMe</AssemblyName>
+    <RootNamespace>DropMe</RootNamespace>
+    <Version>1.0.0</Version>
+    <ApplicationIcon>Assets\DropMe.ico</ApplicationIcon>
+    <Product>DropMe</Product>
+    <Description>Étagère flottante pour glisser-déposer</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\DropMe.ico" />
+  </ItemGroup>
+
+</Project>

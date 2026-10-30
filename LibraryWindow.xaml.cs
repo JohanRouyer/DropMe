@@ -1,0 +1,190 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace DropMe;
+
+/// <summary>The DropMe window opened from the tray icon: open shelves and the recent ones, as cards.</summary>
+public partial class LibraryWindow : Window
+{
+    private static readonly Brush CardIdle = new SolidColorBrush(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush CardHover = new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush OpenBadge = new SolidColorBrush(Color.FromRgb(0x3B, 0xA5, 0x5D));
+
+    private readonly App _app;
+    private bool _closing;
+
+    internal LibraryWindow(App app)
+    {
+        _app = app;
+        InitializeComponent();
+        Deactivated += (_, _) =>
+        {
+            if (!_closing)
+                Close();
+        };
+        Closing += (_, _) => _closing = true;
+        KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+                Close();
+        };
+    }
+
+    /// <summary>Shows the window above the notification area, like a Windows flyout.</summary>
+    public void ShowFlyout()
+    {
+        var area = SystemParameters.WorkArea;
+        Left = area.Right - Width;
+        Top = area.Bottom - Height;
+        Rebuild();
+        Show();
+        Activate();
+    }
+
+    private void Rebuild()
+    {
+        Cards.Children.Clear();
+
+        var open = _app.OpenShelves.Where(s => !s.IsEmpty).ToList();
+        foreach (var shelf in open)
+            Cards.Children.Add(MakeCard(shelf.Items, "Ouverte", isOpen: true,
+                onOpen: () => _app.BringShelf(shelf), onRemove: null));
+
+        foreach (var entry in _app.History.Entries)
+            Cards.Children.Add(MakeCard(entry.Items, ShelfHistory.RelativeTime(entry.ClosedAt), isOpen: false,
+                onOpen: () => _app.ReopenFromHistory(entry),
+                onRemove: () =>
+                {
+                    _app.History.Remove(entry);
+                    Rebuild();
+                }));
+
+        int recent = _app.History.Entries.Count;
+        Subtitle.Text = (open.Count, recent) switch
+        {
+            (0, 0) => "Vos étagères apparaîtront ici",
+            (0, _) => $"{recent} étagère{Plural(recent)} récente{Plural(recent)}",
+            (_, 0) => $"{open.Count} ouverte{Plural(open.Count)}",
+            _ => $"{open.Count} ouverte{Plural(open.Count)} · {recent} récente{Plural(recent)}",
+        };
+        ClearButton.Visibility = recent > 0 ? Visibility.Visible : Visibility.Collapsed;
+        EmptyState.Visibility = Cards.Children.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static string Plural(int n) => n > 1 ? "s" : "";
+
+    private FrameworkElement MakeCard(IReadOnlyList<string> items, string caption, bool isOpen,
+        Action onOpen, Action? onRemove)
+    {
+        var stack = new Grid { Height = 112, Margin = new Thickness(10, 12, 10, 0) };
+        ShelfStack.Build(stack, items, 72);
+
+        var title = new TextBlock
+        {
+            Text = ShelfStack.Describe(items),
+            Foreground = Brushes.White,
+            FontSize = 12.5,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(10, 8, 10, 0),
+        };
+
+        var captionRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 2, 0, 12),
+        };
+        if (isOpen)
+            captionRow.Children.Add(new Border
+            {
+                Width = 7,
+                Height = 7,
+                CornerRadius = new CornerRadius(4),
+                Background = OpenBadge,
+                Margin = new Thickness(0, 0, 5, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+        captionRow.Children.Add(new TextBlock
+        {
+            Text = caption,
+            Foreground = new SolidColorBrush(Color.FromArgb(0x90, 0xFF, 0xFF, 0xFF)),
+            FontSize = 11,
+        });
+
+        var content = new StackPanel();
+        content.Children.Add(stack);
+        content.Children.Add(title);
+        content.Children.Add(captionRow);
+
+        var layers = new Grid();
+        layers.Children.Add(content);
+
+        Button? remove = null;
+        if (onRemove != null)
+        {
+            remove = new Button
+            {
+                Style = (Style)FindResource("IconButton"),
+                Content = "✕",
+                ToolTip = "Retirer de l'historique",
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(8),
+                Visibility = Visibility.Hidden,
+            };
+            remove.Click += (_, _) => onRemove();
+            layers.Children.Add(remove);
+        }
+
+        var card = new Border
+        {
+            Width = 166,
+            Margin = new Thickness(0, 0, 10, 10),
+            CornerRadius = new CornerRadius(14),
+            Background = CardIdle,
+            Cursor = Cursors.Hand,
+            Child = layers,
+            ToolTip = string.Join(Environment.NewLine, items.Take(10)) + (items.Count > 10 ? $"{Environment.NewLine}…" : ""),
+        };
+        card.MouseEnter += (_, _) =>
+        {
+            card.Background = CardHover;
+            if (remove != null)
+                remove.Visibility = Visibility.Visible;
+        };
+        card.MouseLeave += (_, _) =>
+        {
+            card.Background = CardIdle;
+            if (remove != null)
+                remove.Visibility = Visibility.Hidden;
+        };
+        card.MouseLeftButtonUp += (_, _) =>
+        {
+            if (_closing)
+                return;
+            Close();
+            onOpen();
+        };
+        return card;
+    }
+
+    private void New_Click(object sender, RoutedEventArgs e)
+    {
+        if (_closing)
+            return;
+        Close();
+        _app.OpenNewShelf();
+    }
+
+    private void Clear_Click(object sender, RoutedEventArgs e)
+    {
+        _app.History.Clear();
+        Rebuild();
+    }
+}

@@ -23,6 +23,8 @@ public partial class App : Application
     private const string StartupArgument = "--startup";
     // Passed by the installer when it restarts DropMe after an in-app update.
     private const string UpdatedArgument = "--updated";
+    // "DropMe.exe --update" checks for a newer release and installs it right away.
+    private const string UpdateArgument = "--update";
 
     private Mutex? _singleInstance;
     private MouseShakeHook? _hook;
@@ -81,8 +83,17 @@ public partial class App : Application
         else if (!e.Args.Contains(StartupArgument))
             Notify("DropMe is running", "Drag a file and shake the mouse to bring up a shelf.");
 
-        if (Settings.AutoCheckUpdates)
+        if (e.Args.Contains(UpdateArgument))
+            UpdateNow();
+        else if (Settings.AutoCheckUpdates)
             StartUpdateTimer();
+    }
+
+    private async void UpdateNow()
+    {
+        await CheckForUpdatesAsync(manual: true);
+        if (AvailableUpdate != null)
+            InstallUpdate();
     }
 
     private void Notify(string title, string text, Forms.ToolTipIcon icon = Forms.ToolTipIcon.Info, Action? onClick = null)

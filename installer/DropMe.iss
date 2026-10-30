@@ -6,13 +6,21 @@
 #endif
 #define AppName "DropMe"
 #define AppExe "DropMe.exe"
+#define AppAuthor "JohanRouyer"
+#define AppUrl "https://github.com/JohanRouyer/DropMe"
 
 [Setup]
 AppId={{8F3C2A51-6B7E-4D2A-9C1F-3E5B7A9D0C42}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
-AppPublisher={#AppName}
+AppPublisher={#AppAuthor}
+AppPublisherURL={#AppUrl}
+AppSupportURL={#AppUrl}/issues
+AppUpdatesURL={#AppUrl}/releases
+AppCopyright=Copyright (c) 2026 {#AppAuthor}
+; Shown as a page to accept before installing.
+LicenseFile=..\LICENSE.md
 ; Per-user install: no administrator rights needed.
 PrivilegesRequired=lowest
 DefaultDirName={localappdata}\Programs\{#AppName}
@@ -44,6 +52,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "..\bin\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; The license requires its terms and the copyright notice to travel with every copy.
+Source: "..\LICENSE.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"

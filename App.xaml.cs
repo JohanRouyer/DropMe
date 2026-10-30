@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -17,6 +19,7 @@ public partial class App : Application
     private const string RunValueName = "DropMe";
     // Passed by the Windows startup entry, so the welcome balloon only shows on a manual launch.
     private const string StartupArgument = "--startup";
+    private const string RepositoryUrl = "https://github.com/JohanRouyer/DropMe";
 
     private Mutex? _singleInstance;
     private MouseShakeHook? _hook;
@@ -238,7 +241,21 @@ public partial class App : Application
         startup.Click += (_, _) => SetStartupEnabled(!startup.Checked);
         menu.Items.Add(startup);
         menu.Items.Add(new Forms.ToolStripSeparator());
+        menu.Items.Add("About DropMe", null, (_, _) => ShowAbout());
         menu.Items.Add("Quit", null, (_, _) => Shutdown());
+    }
+
+    private static void ShowAbout()
+    {
+        string? version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
+        var answer = MessageBox.Show(
+            $"DropMe {version}\nCopyright (c) 2026 JohanRouyer\n\n"
+            + "Licensed under the PolyForm Noncommercial License 1.0.0: free for noncommercial use, "
+            + "and this copyright notice must be kept when sharing it.\n\n"
+            + "Open the project page on GitHub?",
+            "About DropMe", MessageBoxButton.YesNo, MessageBoxImage.Information);
+        if (answer == MessageBoxResult.Yes)
+            Process.Start(new ProcessStartInfo(RepositoryUrl) { UseShellExecute = true });
     }
 
     private static Drawing.Icon LoadTrayIcon()

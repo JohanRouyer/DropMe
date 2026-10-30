@@ -13,6 +13,10 @@
     <ApplicationIcon>Assets\DropMe.ico</ApplicationIcon>
     <Product>DropMe</Product>
     <Description>Floating drag-and-drop shelf</Description>
+    <Authors>JohanRouyer</Authors>
+    <Copyright>Copyright (c) 2026 JohanRouyer</Copyright>
+    <PackageLicenseExpression>PolyForm-Noncommercial-1.0.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/JohanRouyer/DropMe</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -96,7 +96,7 @@ internal static class ImageDownloader
 
             string extension = ExtensionForMime(mime) ?? (ImageExtensions.Contains(urlExt) ? urlExt : ".jpg");
             string baseName = VirtualFiles.SanitizeFileName(Uri.UnescapeDataString(Path.GetFileNameWithoutExtension(uri.AbsolutePath)));
-            if (baseName == "Fichier" || baseName.Length < 2)
+            if (baseName == "File" || baseName.Length < 2)
                 baseName = $"Image {stamp}";
             if (baseName.Length > 80)
                 baseName = baseName[..80];

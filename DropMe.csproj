@@ -12,7 +12,7 @@
     <Version>1.1.0</Version>
     <ApplicationIcon>Assets\DropMe.ico</ApplicationIcon>
     <Product>DropMe</Product>
-    <Description>Étagère flottante pour glisser-déposer</Description>
+    <Description>Floating drag-and-drop shelf</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,37 +1,36 @@
 # DropMe
 
-Étagère flottante pour Windows : glissez un fichier, secouez la souris, une petite fenêtre
-apparaît pour le déposer le temps de changer de dossier ou d'application.
+A floating shelf for Windows: drag a file, shake the mouse, and a small window pops up to hold it
+while you switch to another folder or app.
 
-## Fonctionnement
+## How it works
 
-- **Secouer la souris** pendant un glisser (clic gauche enfoncé) ouvre une étagère près du curseur.
-- **Déposer** fichiers, dossiers, images de sites web, textes ou liens dessus.
-- **Glisser la pile** vers un dossier ou une app pour tout déplacer ; **cliquer** dessus la déplie
-  pour voir chaque fichier et les glisser un par un.
-- **Clic sur l'icône** de la zone de notification : fenêtre DropMe avec les étagères ouvertes et
-  les dernières fermées, à rouvrir d'un clic. Le nombre d'étagères gardées (3 à 50, 5 par défaut)
-  se règle avec ⚙ ou dans le menu de l'icône.
+- **Shake the mouse** while dragging (left button held) to open a shelf next to the cursor.
+- **Drop** files, folders, images from websites, text or links onto it.
+- **Drag the stack** to a folder or app to move everything; **click** it to expand the list and
+  drag files out one by one.
+- **Click the tray icon** to open the DropMe window with your open shelves and the most recently
+  closed ones, which reopen with a click. How many closed shelves are kept (3 to 50, 5 by default)
+  is set with ⚙ or from the tray icon menu.
 
-Les étagères ne gardent que des chemins vers les fichiers. Les images, textes et liens venus
-d'autres applications sont enregistrés dans `%TEMP%\DropMe` ; l'historique et les réglages dans
-`%APPDATA%\DropMe`.
+Shelves only keep paths to your files. Images, text and links dropped from other apps are saved to
+`%TEMP%\DropMe`; history and settings live in `%APPDATA%\DropMe`.
 
-## Développement
+## Development
 
-Prérequis : SDK .NET 8.
+Requires the .NET 8 SDK.
 
 ```
 dotnet build -c Release
 ```
 
-## Installeur
+## Installer
 
-Prérequis : SDK .NET 8 et Inno Setup 6 (`winget install JRSoftware.InnoSetup`).
+Requires the .NET 8 SDK and Inno Setup 6 (`winget install JRSoftware.InnoSetup`).
 
 ```
 powershell -ExecutionPolicy Bypass -File installer\build-installer.ps1
 ```
 
-Produit `dist\DropMe-Setup-<version>.exe` (autonome, sans droits administrateur). La version vient
-de `<Version>` dans `DropMe.csproj`.
+Produces `dist\DropMe-Setup-<version>.exe` (self-contained, no admin rights needed). The version
+comes from `<Version>` in `DropMe.csproj`.

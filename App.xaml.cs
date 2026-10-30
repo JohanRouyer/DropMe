@@ -139,7 +139,7 @@ public partial class App : Application
         History.Remove(entry);
         if (!entry.Items.Any(p => File.Exists(p) || Directory.Exists(p)))
         {
-            _tray?.ShowBalloonTip(3000, "DropMe", "Ces fichiers n'existent plus.", Forms.ToolTipIcon.Warning);
+            _tray?.ShowBalloonTip(3000, "DropMe", "These files no longer exist.", Forms.ToolTipIcon.Warning);
             return;
         }
 
@@ -173,7 +173,7 @@ public partial class App : Application
         _tray = new Forms.NotifyIcon
         {
             Icon = LoadTrayIcon(),
-            Text = "DropMe — secouez la souris pendant un glisser",
+            Text = "DropMe — shake the mouse while dragging",
             ContextMenuStrip = menu,
             Visible = true,
         };
@@ -183,8 +183,8 @@ public partial class App : Application
                 ToggleLibrary();
         };
         if (showWelcome)
-            _tray.ShowBalloonTip(3000, "DropMe est actif",
-                "Glissez un fichier puis secouez la souris pour faire apparaître l'étagère.", Forms.ToolTipIcon.Info);
+            _tray.ShowBalloonTip(3000, "DropMe is running",
+                "Drag a file and shake the mouse to bring up a shelf.", Forms.ToolTipIcon.Info);
     }
 
     private void ToggleLibrary()
@@ -211,11 +211,11 @@ public partial class App : Application
     private void BuildTrayMenu(Forms.ContextMenuStrip menu)
     {
         menu.Items.Clear();
-        menu.Items.Add("Ouvrir DropMe", null, (_, _) => ToggleLibrary());
-        menu.Items.Add("Nouvelle étagère", null, (_, _) => OpenNewShelf());
+        menu.Items.Add("Open DropMe", null, (_, _) => ToggleLibrary());
+        menu.Items.Add("New shelf", null, (_, _) => OpenNewShelf());
         if (_shelves.Count > 0)
         {
-            menu.Items.Add("Fermer toutes les étagères", null, (_, _) =>
+            menu.Items.Add("Close all shelves", null, (_, _) =>
             {
                 foreach (var shelf in _shelves.ToList())
                     shelf.Close();
@@ -223,22 +223,22 @@ public partial class App : Application
         }
         menu.Items.Add(new Forms.ToolStripSeparator());
 
-        var historySize = new Forms.ToolStripMenuItem("Taille de l'historique");
+        var historySize = new Forms.ToolStripMenuItem("History size");
         foreach (int size in Settings.HistorySizeChoices)
         {
             int choice = size;
-            historySize.DropDownItems.Add(new Forms.ToolStripMenuItem($"{choice} étagères", null, (_, _) => SetHistorySize(choice))
+            historySize.DropDownItems.Add(new Forms.ToolStripMenuItem($"{choice} shelves", null, (_, _) => SetHistorySize(choice))
             {
                 Checked = Settings.HistorySize == choice,
             });
         }
         menu.Items.Add(historySize);
 
-        var startup =new Forms.ToolStripMenuItem("Lancer au démarrage de Windows") { Checked = IsStartupEnabled() };
+        var startup =new Forms.ToolStripMenuItem("Start with Windows") { Checked = IsStartupEnabled() };
         startup.Click += (_, _) => SetStartupEnabled(!startup.Checked);
         menu.Items.Add(startup);
         menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Quitter", null, (_, _) => Shutdown());
+        menu.Items.Add("Quit", null, (_, _) => Shutdown());
     }
 
     private static Drawing.Icon LoadTrayIcon()

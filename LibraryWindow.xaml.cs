@@ -52,7 +52,7 @@ public partial class LibraryWindow : Window
 
         var open = _app.OpenShelves.Where(s => !s.IsEmpty).ToList();
         foreach (var shelf in open)
-            Cards.Children.Add(MakeCard(shelf.Items, "Ouverte", isOpen: true,
+            Cards.Children.Add(MakeCard(shelf.Items, "Open", isOpen: true,
                 onOpen: () => _app.BringShelf(shelf), onRemove: null));
 
         foreach (var entry in _app.History.Entries)
@@ -65,19 +65,17 @@ public partial class LibraryWindow : Window
                 }));
 
         int recent = _app.History.Entries.Count;
-        string kept = $"historique : {_app.History.Capacity} max";
+        string kept = $"history: {_app.History.Capacity} max";
         Subtitle.Text = (open.Count, recent) switch
         {
-            (0, 0) => $"Vos étagères apparaîtront ici · {kept}",
-            (0, _) => $"{recent} étagère{Plural(recent)} récente{Plural(recent)} · {kept}",
-            (_, 0) => $"{open.Count} ouverte{Plural(open.Count)} · {kept}",
-            _ => $"{open.Count} ouverte{Plural(open.Count)} · {recent} récente{Plural(recent)} · {kept}",
+            (0, 0) => $"Your shelves will show up here · {kept}",
+            (0, _) => $"{recent} recent {(recent == 1 ? "shelf" : "shelves")} · {kept}",
+            (_, 0) => $"{open.Count} open · {kept}",
+            _ => $"{open.Count} open · {recent} recent · {kept}",
         };
         ClearButton.Visibility = recent > 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyState.Visibility = Cards.Children.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
-
-    private static string Plural(int n) => n > 1 ? "s" : "";
 
     private FrameworkElement MakeCard(IReadOnlyList<string> items, string caption, bool isOpen,
         Action onOpen, Action? onRemove)
@@ -133,7 +131,7 @@ public partial class LibraryWindow : Window
             {
                 Style = (Style)FindResource("IconButton"),
                 Content = "✕",
-                ToolTip = "Retirer de l'historique",
+                ToolTip = "Remove from history",
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
                 Margin = new Thickness(8),
@@ -186,13 +184,13 @@ public partial class LibraryWindow : Window
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
         var menu = new ContextMenu { PlacementTarget = SettingsButton };
-        menu.Items.Add(new MenuItem { Header = "Taille de l'historique", IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = "History size", IsEnabled = false });
         foreach (int size in Settings.HistorySizeChoices)
         {
             int choice = size;
             var item = new MenuItem
             {
-                Header = $"{choice} étagères",
+                Header = $"{choice} shelves",
                 IsCheckable = true,
                 IsChecked = _app.Settings.HistorySize == choice,
             };

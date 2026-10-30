@@ -10,16 +10,16 @@ if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
 dotnet publish "$root\DropMe.csproj" -c Release -r win-x64 --self-contained true `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:PublishReadyToRun=true -p:DebugType=none -o $publish
-if ($LASTEXITCODE) { throw "dotnet publish a échoué" }
+if ($LASTEXITCODE) { throw "dotnet publish failed" }
 
 $iscc = @(
     "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
     "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $iscc) { throw "Inno Setup 6 introuvable : winget install JRSoftware.InnoSetup" }
+if (-not $iscc) { throw "Inno Setup 6 not found: winget install JRSoftware.InnoSetup" }
 
 & $iscc "/DAppVersion=$version" "$PSScriptRoot\DropMe.iss"
-if ($LASTEXITCODE) { throw "La compilation de l'installeur a échoué" }
+if ($LASTEXITCODE) { throw "Installer compilation failed" }
 
 Get-Item "$root\dist\DropMe-Setup-$version.exe"

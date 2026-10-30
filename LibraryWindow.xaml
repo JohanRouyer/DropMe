@@ -94,11 +94,11 @@
                     <TextBlock x:Name="Subtitle" Foreground="#90FFFFFF" FontSize="12" Margin="0,2,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button x:Name="ClearButton" Style="{StaticResource PillButton}" Content="Effacer l'historique"
+                    <Button x:Name="ClearButton" Style="{StaticResource PillButton}" Content="Clear history"
                             Margin="0,0,8,0" Click="Clear_Click"/>
                     <Button x:Name="SettingsButton" Style="{StaticResource PillButton}" Content="⚙" FontSize="13"
-                            Padding="9,4" Margin="0,0,8,0" Click="Settings_Click" ToolTip="Réglages"/>
-                    <Button Style="{StaticResource PillButton}" Background="#5865F2" Content="＋  Nouvelle étagère"
+                            Padding="9,4" Margin="0,0,8,0" Click="Settings_Click" ToolTip="Settings"/>
+                    <Button Style="{StaticResource PillButton}" Background="#5865F2" Content="＋  New shelf"
                             Click="New_Click"/>
                 </StackPanel>
             </Grid>
@@ -113,9 +113,9 @@
             <StackPanel x:Name="EmptyState" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
                         Visibility="Collapsed">
                 <TextBlock Text="⤓" FontSize="40" Foreground="#60FFFFFF" HorizontalAlignment="Center"/>
-                <TextBlock Text="Aucune étagère pour l'instant" Foreground="#C0FFFFFF" FontSize="14"
+                <TextBlock Text="No shelves yet" Foreground="#C0FFFFFF" FontSize="14"
                            HorizontalAlignment="Center" Margin="0,6,0,4"/>
-                <TextBlock Text="Glissez un fichier puis secouez la souris." Foreground="#80FFFFFF" FontSize="12"
+                <TextBlock Text="Drag a file, then shake the mouse." Foreground="#80FFFFFF" FontSize="12"
                            HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>

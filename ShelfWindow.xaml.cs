@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -249,8 +250,8 @@ public partial class ShelfWindow : Window
             bool isUrl = Uri.TryCreate(text.Trim(), UriKind.Absolute, out var uri)
                          && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
             string path = isUrl
-                ? UniquePath(Path.Combine(TempFolder, $"Lien {stamp}.url"))
-                : UniquePath(Path.Combine(TempFolder, $"Texte {stamp}.txt"));
+                ? UniquePath(Path.Combine(TempFolder, $"Link {stamp}.url"))
+                : UniquePath(Path.Combine(TempFolder, $"Text {stamp}.txt"));
             File.WriteAllText(path, isUrl ? $"[InternetShortcut]\r\nURL={uri}\r\n" : text, Encoding.UTF8);
             return path;
         }
@@ -381,11 +382,11 @@ public partial class ShelfWindow : Window
     private void Menu_Click(object sender, RoutedEventArgs e)
     {
         var menu = new ContextMenu { PlacementTarget = MenuButton };
-        menu.Items.Add(MakeMenuItem("Afficher dans l'Explorateur", RevealInExplorer, !IsEmpty));
-        menu.Items.Add(MakeMenuItem("Copier les chemins", CopyPaths, !IsEmpty));
-        menu.Items.Add(MakeMenuItem("Vider l'étagère", () => { _items.Clear(); Refresh(); }, !IsEmpty));
+        menu.Items.Add(MakeMenuItem("Show in Explorer", RevealInExplorer, !IsEmpty));
+        menu.Items.Add(MakeMenuItem("Copy paths", CopyPaths, !IsEmpty));
+        menu.Items.Add(MakeMenuItem("Clear shelf", () => { _items.Clear(); Refresh(); }, !IsEmpty));
         menu.Items.Add(new Separator());
-        menu.Items.Add(MakeMenuItem("Fermer", Close, true));
+        menu.Items.Add(MakeMenuItem("Close", Close, true));
         menu.IsOpen = true;
     }
 
@@ -439,11 +440,11 @@ public partial class ShelfWindow : Window
         ListScroller.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         CollapseButton.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         Footer.Cursor = _expanded ? Cursors.Hand : null;
-        Footer.ToolTip = _expanded ? "Glissez pour tout déplacer" : null;
+        Footer.ToolTip = _expanded ? "Drag to move everything" : null;
 
         if (_expanded)
         {
-            CountText.Text = _items.Count > 1 ? $"⠿  Glisser les {_items.Count} éléments" : "⠿  Glisser";
+            CountText.Text = _items.Count > 1 ? $"⠿  Drag all {_items.Count} items" : "⠿  Drag";
             ListHost.Children.Clear();
             foreach (var path in _items)
                 ListHost.Children.Add(MakeRow(path));
@@ -467,7 +468,7 @@ public partial class ShelfWindow : Window
             Width = 20,
             Height = 20,
             FontSize = 9,
-            ToolTip = "Retirer de l'étagère",
+            ToolTip = "Remove from shelf",
             Visibility = Visibility.Hidden,
             VerticalAlignment = VerticalAlignment.Center,
         };
@@ -511,7 +512,7 @@ public partial class ShelfWindow : Window
             CornerRadius = new CornerRadius(8),
             Background = Brushes.Transparent,
             Cursor = Cursors.Hand,
-            ToolTip = $"{path}\nGlissez pour déplacer · double-clic pour ouvrir",
+            ToolTip = $"{path}\nDrag to move · double-click to open",
         };
         row.MouseEnter += (_, _) =>
         {
@@ -542,23 +543,23 @@ public partial class ShelfWindow : Window
     private static string DescribeFile(string path)
     {
         if (Directory.Exists(path))
-            return "Dossier";
+            return "Folder";
         try
         {
             long size = new FileInfo(path).Length;
             string ext = Path.GetExtension(path).TrimStart('.').ToUpperInvariant();
             string formatted = size switch
             {
-                < 1024 => $"{size} o",
-                < 1024 * 1024 => $"{size / 1024.0:0.#} Ko",
-                < 1024L * 1024 * 1024 => $"{size / (1024.0 * 1024):0.#} Mo",
-                _ => $"{size / (1024.0 * 1024 * 1024):0.##} Go",
+                < 1024 => $"{size} B",
+                < 1024 * 1024 => string.Create(CultureInfo.InvariantCulture, $"{size / 1024.0:0.#} KB"),
+                < 1024L * 1024 * 1024 => string.Create(CultureInfo.InvariantCulture, $"{size / (1024.0 * 1024):0.#} MB"),
+                _ => string.Create(CultureInfo.InvariantCulture, $"{size / (1024.0 * 1024 * 1024):0.##} GB"),
             };
             return ext.Length > 0 ? $"{ext} · {formatted}" : formatted;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return "Introuvable";
+            return "Not found";
         }
     }
 

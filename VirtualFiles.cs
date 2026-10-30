@@ -157,6 +157,6 @@ internal static class VirtualFiles
         foreach (char c in Path.GetInvalidFileNameChars())
             name = name.Replace(c, '_');
         name = name.Trim().TrimEnd('.');
-        return name.Length == 0 ? "Fichier" : name;
+        return name.Length == 0 ? "File" : name;
     }
 }

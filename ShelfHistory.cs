@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -80,11 +81,11 @@ internal sealed class ShelfHistory
     public static string RelativeTime(DateTime when)
     {
         var age = DateTime.Now - when;
-        if (age.TotalMinutes < 1) return "à l'instant";
-        if (age.TotalHours < 1) return $"il y a {(int)age.TotalMinutes} min";
-        if (when.Date == DateTime.Today) return $"il y a {(int)age.TotalHours} h";
-        if (when.Date == DateTime.Today.AddDays(-1)) return "hier";
-        return when.ToString("d MMM");
+        if (age.TotalMinutes < 1) return "just now";
+        if (age.TotalHours < 1) return $"{(int)age.TotalMinutes} min ago";
+        if (when.Date == DateTime.Today) return $"{(int)age.TotalHours} h ago";
+        if (when.Date == DateTime.Today.AddDays(-1)) return "yesterday";
+        return when.ToString("MMM d", CultureInfo.InvariantCulture);
     }
 
     private void Save()

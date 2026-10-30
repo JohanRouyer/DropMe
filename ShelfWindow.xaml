@@ -74,12 +74,12 @@
             <!-- Header: drag to move the shelf -->
             <Grid Background="Transparent" MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <Button Style="{StaticResource IconButton}" Content="✕" HorizontalAlignment="Left"
-                        Margin="8,0,0,0" Click="Close_Click" ToolTip="Fermer"/>
+                        Margin="8,0,0,0" Click="Close_Click" ToolTip="Close"/>
                 <Border Width="34" Height="4" CornerRadius="2" Background="#40FFFFFF"
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,8,0">
                     <Button x:Name="CollapseButton" Style="{StaticResource IconButton}" Content="⤡" FontSize="12"
-                            Margin="0,0,4,0" Click="Collapse_Click" ToolTip="Réduire" Visibility="Collapsed"/>
+                            Margin="0,0,4,0" Click="Collapse_Click" ToolTip="Collapse" Visibility="Collapsed"/>
                     <Button x:Name="MenuButton" Style="{StaticResource IconButton}" Content="⋯" FontSize="13"
                             Click="Menu_Click" ToolTip="Options"/>
                 </StackPanel>
@@ -91,14 +91,14 @@
                                StrokeThickness="1.5" StrokeDashArray="4 3"/>
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <TextBlock Text="⤓" FontSize="28" Foreground="#90FFFFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Déposez ici" FontSize="12" Foreground="#90FFFFFF"
+                        <TextBlock Text="Drop here" FontSize="12" Foreground="#90FFFFFF"
                                    HorizontalAlignment="Center" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Grid>
 
                 <!-- Collapsed: a fanned stack. Click to expand, drag to take everything. -->
                 <Grid x:Name="StackHost" Background="Transparent" Cursor="Hand" Visibility="Collapsed"
-                      ToolTip="Cliquez pour tout voir · glissez pour tout déplacer"
+                      ToolTip="Click to see everything · drag to move everything"
                       MouseLeftButtonDown="Stack_MouseLeftButtonDown"
                       MouseMove="Stack_MouseMove"
                       MouseLeftButtonUp="Stack_MouseLeftButtonUp"/>

@@ -32,14 +32,11 @@ ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=no
 
 [Languages]
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [CustomMessages]
-french.StartupGroup=Démarrage :
-french.StartupTask=Lancer DropMe au démarrage de Windows
-english.StartupGroup=Startup:
-english.StartupTask=Start DropMe when Windows starts
+StartupGroup=Startup:
+StartupTask=Start DropMe when Windows starts
 
 [Tasks]
 Name: "startup"; Description: "{cm:StartupTask}"; GroupDescription: "{cm:StartupGroup}"
@@ -53,7 +50,7 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]
-; Same value the app's own "Lancer au démarrage" menu item toggles.
+; Same value the app's own "Start with Windows" menu item toggles.
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "DropMe"; ValueData: """{app}\{#AppExe}"" --startup"; Tasks: startup
 
 [Run]

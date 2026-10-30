@@ -94,7 +94,7 @@ internal static class ShelfStack
         Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } name ? name : path;
 
     public static string Describe(IReadOnlyList<string> items) =>
-        items.Count == 1 ? DisplayName(items[0]) : $"{items.Count} éléments";
+        items.Count == 1 ? DisplayName(items[0]) : $"{items.Count} items";
 
     private static FrameworkElement MakeCard(string path, double angle, double size) => new Border
     {

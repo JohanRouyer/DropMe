@@ -13,11 +13,16 @@ internal sealed class ShelfHistory
 {
     public sealed record Entry(List<string> Items, DateTime ClosedAt);
 
-    private static readonly string FilePath = Path.Combine(
+    private static readonly string DefaultFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DropMe", "history.json");
 
     private readonly List<Entry> _entries = new();
     private int _capacity = Settings.DefaultHistorySize;
+    // Null keeps the history in memory only (used when rendering screenshots).
+    private string? _filePath = DefaultFilePath;
+
+    /// <summary>A history that is never read from or written to disk.</summary>
+    public static ShelfHistory InMemory(int capacity) => new() { _capacity = Math.Max(1, capacity), _filePath = null };
 
     public IReadOnlyList<Entry> Entries => _entries;
 
@@ -41,8 +46,8 @@ internal sealed class ShelfHistory
         var history = new ShelfHistory { _capacity = Math.Max(1, capacity) };
         try
         {
-            if (File.Exists(FilePath)
-                && JsonSerializer.Deserialize<List<Entry>>(File.ReadAllText(FilePath)) is { } entries)
+            if (File.Exists(DefaultFilePath)
+                && JsonSerializer.Deserialize<List<Entry>>(File.ReadAllText(DefaultFilePath)) is { } entries)
                 history._entries.AddRange(entries.Where(e => e.Items is { Count: > 0 }).Take(history._capacity));
         }
         catch (Exception ex)
@@ -52,7 +57,7 @@ internal sealed class ShelfHistory
         return history;
     }
 
-    public void Add(IEnumerable<string> items)
+    public void Add(IEnumerable<string> items, DateTime? closedAt = null)
     {
         var list = items.ToList();
         if (list.Count == 0)
@@ -60,7 +65,7 @@ internal sealed class ShelfHistory
         // The same set of files reopened and closed again just moves back to the top.
         _entries.RemoveAll(e => e.Items.Count == list.Count
                                 && e.Items.All(p => list.Contains(p, StringComparer.OrdinalIgnoreCase)));
-        _entries.Insert(0, new Entry(list, DateTime.Now));
+        _entries.Insert(0, new Entry(list, closedAt ?? DateTime.Now));
         if (_entries.Count > _capacity)
             _entries.RemoveRange(_capacity, _entries.Count - _capacity);
         Save();
@@ -90,10 +95,12 @@ internal sealed class ShelfHistory
 
     private void Save()
     {
+        if (_filePath == null)
+            return;
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(_entries));
+            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+            File.WriteAllText(_filePath, JsonSerializer.Serialize(_entries));
         }
         catch (Exception ex)
         {

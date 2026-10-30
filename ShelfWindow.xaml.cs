@@ -29,6 +29,8 @@ public partial class ShelfWindow : Window
     private const uint SWP_NOACTIVATE = 0x0010;
     private const uint SWP_SHOWWINDOW = 0x0040;
     private static readonly IntPtr HWND_TOPMOST = new(-1);
+    // Matches Left="-32000" in the XAML, with room for DPI rounding.
+    private const int ParkedOffscreen = -30000;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT { public int X, Y; }
@@ -275,7 +277,7 @@ public partial class ShelfWindow : Window
         }
     }
 
-    private void SetHighlight(bool on)
+    internal void SetHighlight(bool on)
     {
         var accent = (Brush)FindResource("Accent");
         DropOutline.Stroke = on ? accent : IdleOutline;
@@ -421,7 +423,7 @@ public partial class ShelfWindow : Window
 
     private void Collapse_Click(object sender, RoutedEventArgs e) => SetExpanded(false);
 
-    private void SetExpanded(bool expanded)
+    internal void SetExpanded(bool expanded)
     {
         _expanded = expanded && !IsEmpty;
         Refresh();
@@ -592,6 +594,9 @@ public partial class ShelfWindow : Window
     {
         var hwnd = new WindowInteropHelper(this).Handle;
         if (hwnd == IntPtr.Zero || !GetWindowRect(hwnd, out var rect))
+            return;
+        // Parked off-screen on purpose (the pre-created spare shelf): leave it there.
+        if (rect.Left <= ParkedOffscreen)
             return;
         var area = Forms.Screen.FromHandle(hwnd).WorkingArea;
         int width = rect.Right - rect.Left, height = rect.Bottom - rect.Top;

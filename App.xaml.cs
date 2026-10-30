@@ -41,7 +41,7 @@ public partial class App : Application
     private DateTime _libraryClosedAt;
 
     internal Settings Settings { get; private set; } = new();
-    internal ShelfHistory History { get; private set; } = new();
+    internal ShelfHistory History { get; set; } = new();
     internal IReadOnlyList<ShelfWindow> OpenShelves => _shelves;
     // A shelf created ahead of time, so shaking shows one instantly instead of building a window.
     private ShelfWindow? _spare;

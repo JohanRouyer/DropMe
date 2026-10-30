@@ -46,7 +46,7 @@ public partial class LibraryWindow : Window
         Activate();
     }
 
-    private void Rebuild()
+    internal void Rebuild()
     {
         Cards.Children.Clear();
 

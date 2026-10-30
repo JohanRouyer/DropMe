@@ -23,4 +23,12 @@
     <Resource Include="Assets\DropMe.ico" />
   </ItemGroup>
 
+  <!-- tools/ holds separate projects (screenshot renderer); keep them out of the app. -->
+  <ItemGroup>
+    <Compile Remove="tools\**" />
+    <Page Remove="tools\**" />
+    <None Remove="tools\**" />
+    <InternalsVisibleTo Include="DropMe.Screenshots" />
+  </ItemGroup>
+
 </Project>

@@ -12,6 +12,8 @@ while you go find where it belongs.
 
 [**Download for Windows**](https://github.com/JohanRouyer/DropMe/releases/latest)
 
+<img src="docs/demo.gif" width="720" alt="Dragging a photo, shaking the mouse to bring up a DropMe shelf, dropping the photo on it, then dragging it from the shelf into a folder">
+
 </div>
 
 ---
@@ -44,6 +46,20 @@ until you shake.
   download against the checksum GitHub publishes.
 - **Nothing is moved behind your back.** A shelf only holds references to your files; nothing is
   copied or deleted until you drag it somewhere yourself.
+
+<p align="center">
+  <img src="docs/shelf.png" width="190" alt="A shelf holding a stack of three photos">
+  &nbsp;&nbsp;
+  <img src="docs/shelf-expanded.png" width="300" alt="An expanded shelf listing each file with its thumbnail, type and size">
+  <br>
+  <sub>A shelf collects your files; click it to see and drag each one.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/library.png" width="560" alt="The DropMe window showing five recent shelves as cards">
+  <br>
+  <sub>The DropMe window, from the tray icon: open and recent shelves, one click to bring them back.</sub>
+</p>
 
 ## Get started
 
@@ -83,6 +99,14 @@ powershell -ExecutionPolicy Bypass -File installer\build-installer.ps1
 This produces `dist\DropMe-Setup-<version>.exe`, with the version taken from `<Version>` in
 `DropMe.csproj`. Releases are published as `v<version>` tags with that installer attached, which
 is what the in-app updater looks for.
+
+The images in `docs/` are rendered from DropMe's real windows with sample files, so they can be
+regenerated after a UI change (the second step needs Python with Pillow):
+
+```
+dotnet run --project tools\screenshots -c Release -- docs %TEMP%\dropme-sprites
+python tools\make_demo_gif.py %TEMP%\dropme-sprites docs\demo.gif
+```
 
 ## License
 

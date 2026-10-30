@@ -96,6 +96,8 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button x:Name="ClearButton" Style="{StaticResource PillButton}" Content="Effacer l'historique"
                             Margin="0,0,8,0" Click="Clear_Click"/>
+                    <Button x:Name="SettingsButton" Style="{StaticResource PillButton}" Content="⚙" FontSize="13"
+                            Padding="9,4" Margin="0,0,8,0" Click="Settings_Click" ToolTip="Réglages"/>
                     <Button Style="{StaticResource PillButton}" Background="#5865F2" Content="＋  Nouvelle étagère"
                             Click="New_Click"/>
                 </StackPanel>

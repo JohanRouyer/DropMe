@@ -65,12 +65,13 @@ public partial class LibraryWindow : Window
                 }));
 
         int recent = _app.History.Entries.Count;
+        string kept = $"historique : {_app.History.Capacity} max";
         Subtitle.Text = (open.Count, recent) switch
         {
-            (0, 0) => "Vos étagères apparaîtront ici",
-            (0, _) => $"{recent} étagère{Plural(recent)} récente{Plural(recent)}",
-            (_, 0) => $"{open.Count} ouverte{Plural(open.Count)}",
-            _ => $"{open.Count} ouverte{Plural(open.Count)} · {recent} récente{Plural(recent)}",
+            (0, 0) => $"Vos étagères apparaîtront ici · {kept}",
+            (0, _) => $"{recent} étagère{Plural(recent)} récente{Plural(recent)} · {kept}",
+            (_, 0) => $"{open.Count} ouverte{Plural(open.Count)} · {kept}",
+            _ => $"{open.Count} ouverte{Plural(open.Count)} · {recent} récente{Plural(recent)} · {kept}",
         };
         ClearButton.Visibility = recent > 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyState.Visibility = Cards.Children.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -180,6 +181,29 @@ public partial class LibraryWindow : Window
             return;
         Close();
         _app.OpenNewShelf();
+    }
+
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu { PlacementTarget = SettingsButton };
+        menu.Items.Add(new MenuItem { Header = "Taille de l'historique", IsEnabled = false });
+        foreach (int size in Settings.HistorySizeChoices)
+        {
+            int choice = size;
+            var item = new MenuItem
+            {
+                Header = $"{choice} étagères",
+                IsCheckable = true,
+                IsChecked = _app.Settings.HistorySize == choice,
+            };
+            item.Click += (_, _) =>
+            {
+                _app.SetHistorySize(choice);
+                Rebuild();
+            };
+            menu.Items.Add(item);
+        }
+        menu.IsOpen = true;
     }
 
     private void Clear_Click(object sender, RoutedEventArgs e)

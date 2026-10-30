@@ -25,6 +25,7 @@ public partial class App : Application
     private LibraryWindow? _library;
     private DateTime _libraryClosedAt;
 
+    internal Settings Settings { get; private set; } = new();
     internal ShelfHistory History { get; private set; } = new();
     internal IReadOnlyList<ShelfWindow> OpenShelves => _shelves;
     // A shelf created ahead of time, so shaking shows one instantly instead of building a window.
@@ -48,7 +49,8 @@ public partial class App : Application
             args.Handled = true;
         };
 
-        History = ShelfHistory.Load();
+        Settings = Settings.Load();
+        History = ShelfHistory.Load(Settings.HistorySize);
         PrepareSpareShelf();
 
         _hook = new MouseShakeHook();
@@ -121,6 +123,13 @@ public partial class App : Application
     }
 
     internal void OpenNewShelf() => OpenShelfAtCursor(autoClose: false);
+
+    internal void SetHistorySize(int size)
+    {
+        Settings.HistorySize = size;
+        Settings.Save();
+        History.Capacity = size;
+    }
 
     /// <summary>Brings an open shelf next to the cursor.</summary>
     internal void BringShelf(ShelfWindow shelf) => shelf.ShowNearCursor();
@@ -214,7 +223,18 @@ public partial class App : Application
         }
         menu.Items.Add(new Forms.ToolStripSeparator());
 
-        var startup = new Forms.ToolStripMenuItem("Lancer au démarrage de Windows") { Checked = IsStartupEnabled() };
+        var historySize = new Forms.ToolStripMenuItem("Taille de l'historique");
+        foreach (int size in Settings.HistorySizeChoices)
+        {
+            int choice = size;
+            historySize.DropDownItems.Add(new Forms.ToolStripMenuItem($"{choice} étagères", null, (_, _) => SetHistorySize(choice))
+            {
+                Checked = Settings.HistorySize == choice,
+            });
+        }
+        menu.Items.Add(historySize);
+
+        var startup =new Forms.ToolStripMenuItem("Lancer au démarrage de Windows") { Checked = IsStartupEnabled() };
         startup.Click += (_, _) => SetStartupEnabled(!startup.Checked);
         menu.Items.Add(startup);
         menu.Items.Add(new Forms.ToolStripSeparator());

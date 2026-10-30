@@ -10,10 +10,12 @@ apparaît pour le déposer le temps de changer de dossier ou d'application.
 - **Glisser la pile** vers un dossier ou une app pour tout déplacer ; **cliquer** dessus la déplie
   pour voir chaque fichier et les glisser un par un.
 - **Clic sur l'icône** de la zone de notification : fenêtre DropMe avec les étagères ouvertes et
-  les 5 dernières fermées, à rouvrir d'un clic.
+  les dernières fermées, à rouvrir d'un clic. Le nombre d'étagères gardées (3 à 50, 5 par défaut)
+  se règle avec ⚙ ou dans le menu de l'icône.
 
 Les étagères ne gardent que des chemins vers les fichiers. Les images, textes et liens venus
-d'autres applications sont enregistrés dans `%TEMP%\DropMe` ; l'historique dans `%APPDATA%\DropMe`.
+d'autres applications sont enregistrés dans `%TEMP%\DropMe` ; l'historique et les réglages dans
+`%APPDATA%\DropMe`.
 
 ## Développement
 

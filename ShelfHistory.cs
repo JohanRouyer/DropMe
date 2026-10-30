@@ -10,25 +10,39 @@ namespace DropMe;
 /// <summary>The last few closed shelves, saved to %APPDATA%\DropMe\history.json so they survive a restart.</summary>
 internal sealed class ShelfHistory
 {
-    public const int Capacity = 5;
-
     public sealed record Entry(List<string> Items, DateTime ClosedAt);
 
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DropMe", "history.json");
 
     private readonly List<Entry> _entries = new();
+    private int _capacity = Settings.DefaultHistorySize;
 
     public IReadOnlyList<Entry> Entries => _entries;
 
-    public static ShelfHistory Load()
+    /// <summary>How many closed shelves are kept. Lowering it drops the oldest ones right away.</summary>
+    public int Capacity
     {
-        var history = new ShelfHistory();
+        get => _capacity;
+        set
+        {
+            _capacity = Math.Max(1, value);
+            if (_entries.Count > _capacity)
+            {
+                _entries.RemoveRange(_capacity, _entries.Count - _capacity);
+                Save();
+            }
+        }
+    }
+
+    public static ShelfHistory Load(int capacity)
+    {
+        var history = new ShelfHistory { _capacity = Math.Max(1, capacity) };
         try
         {
             if (File.Exists(FilePath)
                 && JsonSerializer.Deserialize<List<Entry>>(File.ReadAllText(FilePath)) is { } entries)
-                history._entries.AddRange(entries.Where(e => e.Items is { Count: > 0 }).Take(Capacity));
+                history._entries.AddRange(entries.Where(e => e.Items is { Count: > 0 }).Take(history._capacity));
         }
         catch (Exception ex)
         {
@@ -46,8 +60,8 @@ internal sealed class ShelfHistory
         _entries.RemoveAll(e => e.Items.Count == list.Count
                                 && e.Items.All(p => list.Contains(p, StringComparer.OrdinalIgnoreCase)));
         _entries.Insert(0, new Entry(list, DateTime.Now));
-        if (_entries.Count > Capacity)
-            _entries.RemoveRange(Capacity, _entries.Count - Capacity);
+        if (_entries.Count > _capacity)
+            _entries.RemoveRange(_capacity, _entries.Count - _capacity);
         Save();
     }
 

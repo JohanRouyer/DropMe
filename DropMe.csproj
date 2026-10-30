@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>DropMe</AssemblyName>
     <RootNamespace>DropMe</RootNamespace>
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <ApplicationIcon>Assets\DropMe.ico</ApplicationIcon>
     <Product>DropMe</Product>
     <Description>Floating drag-and-drop shelf</Description>
